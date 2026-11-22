@@ -1,5 +1,57 @@
 # Final Furlong — change log
 
+## Update: smooth racing, a clearer start, a lunge at the line, and a career that stays hard
+- **Microstutter fixed at its cause.** The simulation runs at a fixed 120 steps per second and the screen draws at
+  whatever the display does (60, 75, 90, 120, 144 Hz…); each frame used to draw the latest step, so the distance a horse
+  moved per frame jumped between one and two steps (±50 % at 60 Hz) and at 144 Hz it moved on some frames and not on
+  others. Every frame now draws each horse at its exact position between the last two steps; the cameras follow those
+  positions. Physics, results, the race clock and rhythm timing are unchanged and no input delay is added. Measured in
+  the real game (`tools/smooth.js`, a synthetic display clock with real frame jitter), the frame-to-frame change in the
+  horse's speed on screen, Randwick and Flemington, full field and crowd: 60 Hz 6 % → 0 %; 144 Hz 45 % with 98 frozen
+  frames in 600 → 0 %, none frozen; jockey camera 6 % → 0.6 % (60 Hz) and 44 % → 0.3 % (144 Hz); chase camera
+  0.4–1.6 % → 0.2–0.4 %. CPU per frame unchanged (update p95 under 1.3 ms); the broadcast camera's pans were already
+  smooth (they follow a smoothed target) and are unchanged.
+- Also: one render loop guaranteed, shaders compiled before the gates open (no first-sight hitch), the leaderboard and
+  start/finish meters only touch the page when their text changes, the minimap's course outline is drawn once per race
+  (it was rebuilt from 180 fresh points every update) — about 30 % less garbage per second while racing.
+- **F8 diagnostics**: average / median / p95 / p99 frame time, spike counts, a frame-time graph, CPU per frame split into
+  simulation and render submit; **F7** (with F8 on) switches the smoothing off and on to compare.
+- **The start explains itself.** A big prompt says what to do at each step: *Balance your horse* → *Wait for the
+  gates…* → **GO! SPACE**. In the stalls the W or S key on the meter lights up when it's needed (a moment before the
+  horse drifts out of balance), the meter reads *drifting forward — ease him back with S*; the balance zone is wider, the
+  horse calmer and readiness builds faster. Space when the gates open, as before. The stride pushes show their exact
+  timing window — the green lights gold when a push now counts.
+- **The lunge.** In the final strides one **lunge** (Space as the pin crosses the gold) throws the horse at
+  the line — up to half a metre, a short head in a photo; too early and it's over before the line. The rival riders lunge
+  too, Hard jockeys more accurately.
+- **Career difficulty.** Every career jockey now rides at Hard, and rival stables bring their runners primed to your
+  horse for each race (race-day only — their records and development are untouched, nobody is ever weakened). Measured
+  with the real engine, a horse ridden by the Hard AI as a stand-in for a good rider: a new horse's first starts win
+  ~9 % with a top-3 ~40 % (typically 3rd–5th); normal races ~20 %; the Provincial and Metropolitan finals 4–11 % — the
+  same as Quick Race on Hard (11 %). The rivals rise with your horse, so it stays a contest the whole career. The Group 1
+  stars were already stronger than that and are left as they are. The form guide shows race-day ratings.
+- Tests: `tests/riding-control.js` 25 checks (6 new for the lunge), `tests/career_difficulty.js`,
+  `tools/smooth.js`.
+
+## Update: ride the horse — a three-stage start, distinct riding actions, horses with character
+- **The start**: 1 · settle the horse in the stalls (W/S keep its shifting weight balanced; readiness builds), 2 · jump
+  the instant the gates open (no countdown; going early makes it anticipate — costly, never ruinous), 3 · push it into
+  its stride with Space on the first four strides (well timed ≈ a length; frantic pushing wastes energy). Starting
+  ability, composure and temperament matter as well as the rider.
+- **Riding actions** each do something distinct: W/S effort in fine steps; settle relaxes and saves energy; check is a
+  firm pull that really costs momentum (and breaks the finishing rhythm); urge is a nudge that stops working if you
+  nag; drive is all-out — strongest in the finish, wasteful early or for too long; steering taps nudge ¼ lane, holding
+  moves decisively, and a sharp move at a gallop costs speed in a bend.
+- **Horses ride differently** (from their attributes, so training changes them, plus their own temperament): eager and
+  hard to settle, nervous in traffic, quick to respond but tiring if over-asked, slow to wind up then relentless, cool or
+  fractious in the stalls. Shown on the Quick Race card and at the start.
+- **Final drive**: the rhythm only turns into speed at high effort with room to run; driving in rhythm adds to it;
+  mashing wastes energy and breaks the stride.
+- **Jockey**: the rider rocks with the horse in the stalls, pushes with each stride and rhythm tap, sits back to check,
+  is thrown about on a broken stride.
+- Commentary: no dead air on the turn; a run through the field never runs on into the straight.
+- Tests: `tests/riding-control.js` (19 checks of the mechanics), `tests/start-browser.js` (the start in the real game).
+
 ## Update: a race caller who tells the story of the race, in your new ElevenLabs commentator voice
 - **New commentary director**: instead of announcing the leader over and over, the caller watches the whole race —
   margins and whether they are growing or coming back, the groups, the pace, horses improving, boxed in, wide or under

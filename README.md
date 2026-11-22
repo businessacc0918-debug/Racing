@@ -53,6 +53,9 @@ Cox Plate, Caulfield Cup and Melbourne Cup) — against **persistent rivals**. T
 - **Championship** — one runner per stable per round; points 15-12-10-8-6-5-4-3-2-1; skip a round (no points); optional
   races any time (experience only); qualification for the features from your horse's own results; permanent history.
 - **Always a normal race** — Chaos, the kick, stamina assist and other Quick Race options are forced off in career races.
+- **Real competition all career** — every career jockey rides at Hard, and rival stables bring their runners primed to
+  your horse (race-day only, never weakened; `season.js raceField`): a new horse is fighting for a place, the field rises
+  as your horse improves, and finals are as hard as Quick Race on Hard. The form guide shows the race-day ratings.
 - Races at a Randwick venue run on **Royal Randwick**; other venues use the original course until their tracks exist.
 - Saves in the browser (`localStorage` key `ff_career`, schema v3; v1/v2 saves migrate automatically, with a backup copy).
 
@@ -85,8 +88,15 @@ shadow map 2048 → scenery detail → shadow map 1024 → render scale 1.75 →
 only at the last step). It steps back up when there is headroom. Decisions use 1.5 s medians (spikes ignored), need
 two bad windows (one when badly slow) or eight good ones, and wait 3–6 s after each change; a level that failed is not
 retried for 60 s (then 120 s…). The level is remembered. Graphics never touch the simulation.
-Press **F8** in a race for the performance overlay (FPS, frame times and 1% low, JS and simulation ms per frame, draw
-calls, triangles, horse LOD, spectators drawn by detail level, shadow map, render size, preset and AUTO state).
+Press **F8** in a race for the performance overlay (FPS, average / median / p95 / p99 frame time and spike counts, a
+frame-time graph, CPU per frame split into simulation / render submit, draw calls, triangles, horse LOD, spectators
+drawn by detail level, shadow map, render size, preset and AUTO state). With the overlay on, **F7** switches motion
+interpolation off and on, to compare.
+
+**Smooth motion.** The simulation runs at a fixed 120 steps per second, independent of the display. Every drawn frame
+shows each horse (and so the cameras) at its exact position between the last two steps, so the motion is even at 60,
+75, 90, 120 or 144 Hz without changing the physics or adding any input delay. `PORT=8095 node tools/smooth.js` measures
+it in the real game with a synthetic display clock.
 F9 is still the collider view.
 
 ## The race caller (ElevenLabs commentator voice)
@@ -243,11 +253,11 @@ If the game page is hosted separately (say, on a static host) and the server els
 
 | Key | Function |
 |---|---|
-| W / S | Effort up / down |
-| A / D | Steer left / right (D always moves your horse to its right, on every course) |
-| Space | In the gates: hold to lift the marker and keep it in the moving sweet spot, then press when the gates open. Mid-race: urge. Final drive: tap on the stride rhythm |
-| Shift | Drive |
-| E / Q | Settle / check (take a pull) |
+| W / S | In the stalls: keep the horse balanced (weight forward / sit back). In the race: effort (tap = 5% step, hold = smooth) |
+| A / D | Steer left / right (D always moves your horse to its right, on every course); a tap nudges ¼ lane, holding moves decisively |
+| Space | Press the instant the gates open (no countdown; early = the horse anticipates), then tap with the first four strides to push into stride. Mid-race: urge (a nudge). Final drive: tap on the rhythm |
+| Shift | Drive — all-out; strongest in the finish, wasteful early or for too long |
+| E / Q | Settle (relax, keep rhythm, save energy) / check (a firm pull for traffic — loses momentum) |
 | C | Camera |
 | Tab | Race stats |
 | P | Chaos mode only: your ONE kick of the race — knocks over the horse right beside you (hold A/D for the side) |
@@ -335,6 +345,8 @@ node tests/commentary.js 36     # commentary checked line by line against 36 rea
 node tests/commentary-scenarios.js 160   # seven kinds of race (packed, wire-to-wire, caught late, midfield run, static, three-way, photo)
 node tests/eleven-plan.js        # every phrase and horse name recorded in the new voice
 node tests/season_balance.js 10 # division balance with the real race engine (multi-process)
+node tests/career_difficulty.js 100 3   # career difficulty vs Quick Race Hard (new horse, normal, finals)
+node tests/riding-control.js     # the start, riding actions, steering, personalities, final drive and the lunge
 PORT=8095 node tests/career-browser.js   # (server running) career, chaos isolation, save migration and spoken commentary in a real browser
 npm run test:protocol
 ```
